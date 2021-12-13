@@ -337,3 +337,136 @@ class GXSettings:
             GXSettings.showHelp()
             return 1
         return 0
+
+    def get_fixed_config_parameters(self):
+        # ln/sn reference config
+        self.client.useLogicalNameReferencing = True
+
+        # Debug/Trace config
+        self.trace = TraceLevel.OFF  # TraceLevel.INFO
+
+        # low authentication password config
+        self.client.password = "12345678"
+
+        # IEC config
+        self.iec = False
+
+        # serial port config
+        self.media = GXSerial(None)
+        self.media.port = '/dev/ttyUSB0'
+        self.media.baudrate = BaudRate.BAUD_RATE_9600
+        self.media.bytesize = 8
+        self.media.parity = Parity.NONE
+        self.media.stopbits = StopBits.ONE
+
+        # authentication type config
+        self.client.authentication = Authentication.LOW
+
+        # client address config
+        self.client.clientAddress = 32
+
+        # server address config
+        self.client.serverAddress = self.client.getServerAddress(1, 0x10, 2)
+
+        if not self.media:
+            GXSettings.showHelp()
+            return 1
+        return 0
+
+    def get_dynamic_config_parameters(self, physicalAdd):
+        # ln/sn reference config
+        self.client.useLogicalNameReferencing = True
+
+        # Debug/Trace config
+        self.trace = TraceLevel.INFO  # TraceLevel.INFO
+
+        # low authentication password config
+        self.client.password = "12345678"
+
+        # IEC config
+        self.iec = False
+
+        # serial port config
+        self.media = GXSerial(None)
+        self.media.port = '/dev/ttyUSB0'
+        self.media.baudrate = BaudRate.BAUD_RATE_9600
+        self.media.bytesize = 8
+        # self.media.parity = Parity.EVEN
+        self.media.parity = Parity.NONE
+        self.media.stopbits = StopBits.ONE
+
+        # authentication type config
+        self.client.authentication = Authentication.NONE
+
+        # client address config
+        self.client.clientAddress = 16
+
+        # server address config
+        self.client.serverAddress = self.client.getServerAddress(1, physicalAdd, 4)
+
+        if not self.media:
+            GXSettings.showHelp()
+            return 1
+        return 0
+
+    def get_fixed_config_parameters2(self):
+        # ln/sn reference config
+        self.client.useLogicalNameReferencing = True
+        self.client.interfaceType = InterfaceType.WRAPPER
+
+        # Debug/Trace config
+        self.trace = TraceLevel.INFO  # TraceLevel.INFO
+
+        # low authentication password config
+        self.client.password = "tisretem01"
+
+        # IEC config
+        self.iec = False
+
+        #Tcp/ip host address
+        self.media = GXNet(NetworkType.TCP, "194.163.161.91", 5001)
+
+        # authentication type config
+        self.client.authentication = Authentication.LOW
+
+        # client address config
+        self.client.clientAddress = 0x11
+
+        # server address config
+        if self.client.serverAddress != 1:
+            self.client.serverAddress = GXDLMSClient.getServerAddress(self.client.serverAddress, int(1))
+
+        if not self.media:
+            GXSettings.showHelp()
+            return 1
+        return 0
+
+    def get_dynamic_config_parameters2(self, physicalAdd):
+        # ln/sn reference config
+        self.client.useLogicalNameReferencing = True
+
+        # Debug/Trace config
+        self.trace = TraceLevel.INFO  # TraceLevel.INFO
+
+        # low authentication password config
+        self.client.password = "tisretem01"
+
+        # IEC config
+        self.iec = False
+
+        # Tcp/ip host address
+        self.media = GXNet(NetworkType.TCP, "194.163.161.91", 5001)
+
+        # authentication type config
+        self.client.authentication = Authentication.LOW
+
+        # client address config
+        self.client.clientAddress = 16
+
+        # server address config
+        self.client.serverAddress = self.client.getServerAddress(1, physicalAdd, 4)
+
+        if not self.media:
+            GXSettings.showHelp()
+            return 1
+        return 0

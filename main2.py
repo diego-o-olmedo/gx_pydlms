@@ -73,7 +73,9 @@ class sampleclient():
         try:
             # //////////////////////////////////////
             #  Handle command line parameters.
-            ret = settings.getParameters(args)
+            #ret = settings.getParameters(args)
+            #ret = settings.get_dyanmic_config_parameters()
+            ret = settings.get_fixed_config_parameters2()
             if ret != 0:
                 return
             # //////////////////////////////////////
