@@ -413,9 +413,11 @@ class GXSettings:
         # ln/sn reference config
         self.client.useLogicalNameReferencing = True
         self.client.interfaceType = InterfaceType.WRAPPER
-
+        self.outputFile = r"C:\Users\User\Desktop\Gx\device2.xml"
+        # self.readObjects.append(("0.0.96.1.10.255", 1))
+        # self.readObjects.append(("0.0.96.1.3.255", 1))
         # Debug/Trace config
-        self.trace = TraceLevel.INFO  # TraceLevel.INFO
+        self.trace = TraceLevel.VERBOSE  # TraceLevel.INFO
 
         # low authentication password config
         self.client.password = "tisretem01"

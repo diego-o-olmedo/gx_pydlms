@@ -53,6 +53,7 @@ class GXDLMSReader:
         self.replyBuff = bytearray(8 + 1024)
         self.waitTime = 5000
         self.logFile = open("logFile.txt", "w")
+        self.rdict = {}
         self.trace = trace
         self.media = media
         self.invocationCounter = invocationCounter
@@ -440,10 +441,35 @@ class GXDLMSReader:
 
             self.writeTrace("-------- Reading " + str(it.objectType) + " " + str(it.name) + " " + it.description, TraceLevel.INFO)
             for pos in it.getAttributeIndexToRead(True):
+                if not pos == 1:
+                    try:
+                        #if it.canRead(pos):
+                        val = self.read(it, pos)
+                        self.showValue(pos, val)
+                        # else:
+                        #     self.writeTrace("Attribute" + str(pos) + " is not readable.", TraceLevel.INFO)
+                    except Exception as ex:
+                        self.writeTrace("Error! Index: " + str(pos) + " " + str(ex), TraceLevel.ERROR)
+                        self.writeTrace(str(ex), TraceLevel.ERROR)
+                        if not isinstance(ex, (GXDLMSException, TimeoutException)):
+                            traceback.print_exc()
+    def getReadOut2(self):
+        #pylint: disable=unidiomatic-typecheck, broad-except
+        for it in self.client.objects:
+            if type(it) == GXDLMSObject:
+                print("Unknown Interface: " + it.objectType.__str__())
+                continue
+            if isinstance(it, GXDLMSProfileGeneric):
+                continue
+
+            self.rdict.update({it.objectType:it.name})
+            self.writeTrace("-------- Reading " + str(it.objectType) + " " + str(it.name) + " " + it.description, TraceLevel.INFO)
+            for pos in it.getAttributeIndexToRead(True):
                 try:
                     if it.canRead(pos):
                         val = self.read(it, pos)
-                        self.showValue(pos, val)
+                        self.rdict.update({pos:val})
+                        self.showValue2(pos, val)
                     else:
                         self.writeTrace("Attribute" + str(pos) + " is not readable.", TraceLevel.INFO)
                 except Exception as ex:
@@ -451,8 +477,21 @@ class GXDLMSReader:
                     self.writeTrace(str(ex), TraceLevel.ERROR)
                     if not isinstance(ex, (GXDLMSException, TimeoutException)):
                         traceback.print_exc()
-
     def showValue(self, pos, val):
+        if isinstance(val, (bytes, bytearray)):
+            val = GXByteBuffer(val)
+        elif isinstance(val, list):
+            str_ = ""
+            for tmp in val:
+                if str_:
+                    str_ += ", "
+                if isinstance(tmp, bytes):
+                    str_ += GXByteBuffer.hex(tmp)
+                else:
+                    str_ += str(tmp)
+            val = str_
+        self.writeTrace("Index: " + str(pos) + " Value: " + str(val), TraceLevel.INFO)
+    def showValue2(self, pos, val):
         if isinstance(val, (bytes, bytearray)):
             val = GXByteBuffer(val)
         elif isinstance(val, list):
@@ -514,6 +553,7 @@ class GXDLMSReader:
         self.readDataBlock(self.client.getObjectsRequest(), reply)
         self.client.parseObjects(reply.data, True, False)
         #Access rights must read differently when short Name referencing is used.
+        # self.client.objects.save(r"C:\Users\User\Desktop\Gx\device2.xml")
         if not self.client.useLogicalNameReferencing:
             sn = self.client.objects.findBySN(0xFA00)
             if sn and sn.version > 0:
