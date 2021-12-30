@@ -2,14 +2,15 @@
 import os
 import sys
 import requests
+import json
 
 from GXSettings import GXSettings
 from GXDLMSReader import GXDLMSReader
 
 from gurux_common.enums import TraceLevel
-from gurux_dlms.enums import ObjectType
+from gurux_dlms.enums import ObjectType, DataType
 from gurux_dlms.objects import GXDLMSObject, GXDLMSObjectCollection, GXDLMSData, GXDLMSRegister,\
-    GXDLMSDemandRegister, GXDLMSProfileGeneric, GXDLMSExtendedRegister
+    GXDLMSDemandRegister, GXDLMSProfileGeneric, GXDLMSExtendedRegister, GXDLMSClock
 class MeterTest:
 
     def __init__(self, args):
@@ -36,13 +37,21 @@ class MeterTest:
         print
 
     def addtask(self, v, ln, cnx):
-        djson = {"Logical Name": ln, "Value": v
+        djson = {
+            "titulo" : "referencia",
+            "obis" : ln,
+            "atributos" : [
+                {
+                    "atributo" : "ejemp1", "valor" : v
+                }
+            ]
 
         }
-        r = requests.post('http://194.163.161.91:8080/medidores/cnx', json=djson)
+        url = 'http://194.163.161.91:8080/TOKEN/api/Consultas/medidores/' + cnx
+        r = requests.put(url, json=djson)
         return r
 
-    def POST_request(self,a,b,cnx):
+    def PUT_request(self,a,b,cnx):
         response = self.addtask(a, b, cnx)
         # assert response.status_code == 200
         return response
@@ -64,12 +73,14 @@ class MeterTest:
             if obj is None:
                 raise Exception("Unknown logical name:" + k)
             val = self.reader.read(obj, v)
+            b = bytearray(val)
+            cnx = b.decode()
             # self.reader.showValue(v, val)
         counter = 0
         for obj in self.client.objects:
-            counter += 1
-            if counter < 394:
-                continue
+            # counter += 1
+            # if counter < 394:
+            #     continue
             self.reader.writeTrace(f"Read {counter}. {obj.description} {obj.objectType},{obj.logicalName}", TraceLevel.VERBOSE)
             for index in range(2, len(obj.attributes)+2):
                 if obj.objectType == 7 and index == 2 or \
@@ -79,8 +90,25 @@ class MeterTest:
                 self.reader.writeTrace(f"Read attribute {index}", TraceLevel.VERBOSE)
                 try:
                     data = self.reader.read(obj, index)
-                    self.reader.writeTrace(f"Read result: {data}", TraceLevel.VERBOSE)
-                    self.POST_request(obj.logicalName, data, val)
+                    # self.reader.writeTrace(f"Read result: {data}", TraceLevel.VERBOSE)
+                    self.reader.writeTrace(f"Read result: {self.PUT_request(obj.logicalName, data, cnx)}", TraceLevel.VERBOSE)
+                    # response = self.PUT_request(obj.logicalName, data, cnx)
+                    # # if response.getcode() == 200 & response.read() != []:
+                    # source = response.read()
+                    # data = json.loads(source)
+                    # self.reader.read(data.obj, data.index)
+                    # readObjects.append(("0.0.42.0.0.255", int(2)))
+                    prt = GXDLMSClock("0.0.1.0.0.255")
+                    # prt.setDataType(2, DataType.DATETIME)
+                    # prt.value = "1640777935" #("<DateTime Value=\"29/12/2021 05:45:12\" />\r\n")
+                    prt.setDataType(2, DataType.OCTET_STRING)
+                    prt.value = bytearray(b'07E50C290308430BFF007800')
+                    self.reader.write(prt, 2)
+                    # for k, v in readObjects:
+                    #     obj = self.settings.client.objects.findByLN(ObjectType.NONE, k)
+                    #     if obj is None:
+                    #         raise Exception("Unknown logical name:" + k)
+                    #     val = self.reader.read(obj, v)
                 except:
                     self.reader.writeTrace(f"Read attribute: {index} fail", TraceLevel.ERROR)
         # self.reader.getAssociationView()
@@ -89,7 +117,7 @@ class MeterTest:
         # data1 = self.reader.read(self.client.objects[0], 1)
         # data2 = self.reader.read(self.client.objects[0], 2)
         self.disconnect()
-        self.POST_request(1,2, val)
+        # self.POST_request(1,2, val)
 
     # def get_objects_from_meter(self):
 
