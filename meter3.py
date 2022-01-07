@@ -1,11 +1,16 @@
-import select, socket, os, sys, queue, logging, requests
+import select, socket, os, sys, queue, logging, threading
 from GXSettings import GXSettings
 from GXDLMSReader import GXDLMSReader
 
 from gurux_common.enums import TraceLevel
 from gurux_dlms.objects import GXDLMSObjectCollection
-from .meter2 import MeterTest
+from meter2 import MeterTest
 
+class Meter(threading.Thread):
+    def run(self):
+        meter = MeterTest(
+            "-r ln -i WRAPPER -c 17 -s 1 -a Low -P tisretem01 -h 194.163.161.91 -p 5001 -t Verbose -o C:\\Users\\User\\Desktop\\Gx\device2.xml -g \"0.0.42.0.0.255:2;0.0.40.0.0.255:2\"")
+        meter.main()
 class Server():
     def __init__(self, host='194.163.161.91', port=5001, recv_buffer=4096):
         self.host = host
@@ -64,8 +69,11 @@ class Server():
 
                     logging.info('Client (%s, %s) connected' % client_address)
                     if client_address[0] != '194.163.161.91':
-                        meter = MeterTest("-r ln -i WRAPPER -c 17 -s 1 -a Low -P tisretem01 -h 194.163.161.91 -p 5001 -t Verbose -o C:\\Users\\User\\Desktop\\Gx\device2.xml -g \"0.0.42.0.0.255:2;0.0.40.0.0.255:2\"")
-                        meter.main()
+                        thread = Meter()
+                        thread.daemon = True
+                        thread.start()
+                        # meter = MeterTest("-r ln -i WRAPPER -c 17 -s 1 -a Low -P tisretem01 -h 194.163.161.91 -p 5001 -t Verbose -o C:\\Users\\User\\Desktop\\Gx\device2.xml -g \"0.0.42.0.0.255:2;0.0.40.0.0.255:2\"")
+                        # meter.main()
                         # POST_request()
                         # addtask('Time_1', '0.0.1.1.0.101')
                         # r = requests.post('http://194.163.161.91:64881/api/task/AddTask', json=djson)

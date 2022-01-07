@@ -36,7 +36,7 @@ class MeterTest:
     def addt(self):
         print
 
-    def addtask(self, v, ln, cnx):
+    def addtask(self, ln, v, cnx):
         djson = {
             "proceso":0,
             "ip":"194.163.161.91",
@@ -103,12 +103,12 @@ class MeterTest:
                     # data = json.loads(source)
                     # self.reader.read(data.obj, data.index)
                     # readObjects.append(("0.0.42.0.0.255", int(2)))
-                    prt = GXDLMSClock("0.0.1.0.0.255")
-                    # prt.setDataType(2, DataType.DATETIME)
-                    # prt.value = "1640777935" #("<DateTime Value=\"29/12/2021 05:45:12\" />\r\n")
-                    prt.setDataType(2, DataType.OCTET_STRING)
-                    prt.value = bytearray(b'07E50C290308430BFF007800')
-                    self.reader.write(prt, 2)
+                    # prt = GXDLMSClock("0.0.1.0.0.255")
+                    # # prt.setDataType(2, DataType.DATETIME)
+                    # # prt.value = "1640777935" #("<DateTime Value=\"29/12/2021 05:45:12\" />\r\n")
+                    # prt.setDataType(2, DataType.OCTET_STRING)
+                    # prt.value = bytearray(b'07E50C290308430BFF007800')
+                    # self.reader.write(prt, 2)
                     # for k, v in readObjects:
                     #     obj = self.settings.client.objects.findByLN(ObjectType.NONE, k)
                     #     if obj is None:
