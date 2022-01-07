@@ -38,14 +38,19 @@ class MeterTest:
 
     def addtask(self, v, ln, cnx):
         djson = {
-            "titulo" : "referencia",
-            "obis" : ln,
-            "atributos" : [
-                {
-                    "atributo" : "ejemp1", "valor" : v
-                }
-            ]
+            "proceso":0,
+            "ip":"194.163.161.91",
+            "lectura":
+            [{
+                "titulo" : "referencia",
+                "obis" : ln,
+                "atributos" : [
+                    {
+                        "atributo" : "ejemp1", "valor" : v
+                    }
+                ]
 
+            }]
         }
         url = 'http://194.163.161.91:8080/TOKEN/api/Consultas/medidores/' + cnx
         r = requests.put(url, json=djson)
