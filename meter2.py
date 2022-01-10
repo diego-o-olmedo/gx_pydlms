@@ -36,9 +36,9 @@ class MeterTest:
     def addt(self):
         print
 
-    def addtask(self, ln, v, cnx):
+    def addtask(self, pid, ln, v, cnx):
         djson = {
-            "proceso":0,
+            "proceso":pid,
             "ip":"194.163.161.91",
             "lectura":
             [{
@@ -56,8 +56,8 @@ class MeterTest:
         r = requests.put(url, json=djson)
         return r
 
-    def PUT_request(self,a,b,cnx):
-        response = self.addtask(a, b, cnx)
+    def PUT_request(self,a,b,c,cnx):
+        response = self.addtask(a, b, c, cnx)
         # assert response.status_code == 200
         return response
 
@@ -82,26 +82,33 @@ class MeterTest:
             cnx = b.decode()
             # self.reader.showValue(v, val)
         counter = 0
+        f = False
         for obj in self.client.objects:
             # counter += 1
             # if counter < 394:
             #     continue
             self.reader.writeTrace(f"Read {counter}. {obj.description} {obj.objectType},{obj.logicalName}", TraceLevel.VERBOSE)
             for index in range(2, len(obj.attributes)+2):
-                if obj.objectType == 7 and index == 2 or \
-                        obj.objectType == 15 and index == 2 or \
-                        obj.objectType == 28 and index == 7:
-                    continue
+                # if obj.objectType == 7 and index == 2 or \
+                #         obj.objectType == 15 and index == 2 or \
+                #         obj.objectType == 28 and index == 7:
+                #     continue
                 self.reader.writeTrace(f"Read attribute {index}", TraceLevel.VERBOSE)
                 try:
                     data = self.reader.read(obj, index)
                     # self.reader.writeTrace(f"Read result: {data}", TraceLevel.VERBOSE)
-                    self.reader.writeTrace(f"Read result: {self.PUT_request(obj.logicalName, data, cnx)}", TraceLevel.VERBOSE)
-                    # response = self.PUT_request(obj.logicalName, data, cnx)
-                    # # if response.getcode() == 200 & response.read() != []:
-                    # source = response.read()
-                    # data = json.loads(source)
-                    # self.reader.read(data.obj, data.index)
+                    # self.reader.writeTrace(f"Read result: {self.PUT_request(obj.logicalName, data, cnx)}", TraceLevel.VERBOSE)
+                    response = self.PUT_request(counter,obj.logicalName, data, cnx)
+                    jn = json.loads(response.text)
+                    if (jn["listaDatos"][0] ):#jn["status"] == True & response.status_code == 200:
+                        # print("ok")
+                        # source = response.text
+                        # jn = json.loads(response.text)
+                        p = int(jn["listaDatos"][0]["proceso"])
+                        f = True
+                        # datacmd = self.reader.read(jn["listaDatos"][0]["atributos"]["obis"], jn["listaDatos"][0]["atributos"]["atributo"])
+                        self.reader.writeTrace(f"Read result: {self.PUT_request(p, obj.logicalName, 3, cnx)}",
+                                               TraceLevel.VERBOSE)
                     # readObjects.append(("0.0.42.0.0.255", int(2)))
                     # prt = GXDLMSClock("0.0.1.0.0.255")
                     # # prt.setDataType(2, DataType.DATETIME)
@@ -121,6 +128,8 @@ class MeterTest:
         # obj.logicalName = self.client.objects[0].logicalName
         # data1 = self.reader.read(self.client.objects[0], 1)
         # data2 = self.reader.read(self.client.objects[0], 2)
+            if(f):
+                counter += 1
         self.disconnect()
         # self.POST_request(1,2, val)
 
