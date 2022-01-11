@@ -60,7 +60,32 @@ class MeterTest:
         response = self.addtask(a, b, c, cnx)
         # assert response.status_code == 200
         return response
-
+    def get_sync(self):
+        if self.settings.outputFile and os.path.exists(self.settings.outputFile):
+            try:
+                c = GXDLMSObjectCollection.load(self.settings.outputFile)
+                self.settings.client.objects.extend(c)
+                if self.settings.client.objects:
+                    read = True
+            except Exception:
+                read = False
+        # readObjects = []
+        # readObjects.append(("0.0.42.0.0.255", int(2)))
+        self.connect()
+        # for k, v in readObjects:
+        #     obj = self.settings.client.objects.findByLN(ObjectType.NONE, k)
+        #     if obj is None:
+        #         raise Exception("Unknown logical name:" + k)
+        #     val = self.reader.read(obj, v)
+        prt = GXDLMSClock("0.0.1.0.0.255")
+        # prt.setDataType(2, DataType.DATETIME)
+        # prt.value = "1640777935" #("<DateTime Value=\"29/12/2021 05:45:12\" />\r\n")
+        prt.setDataType(2, DataType.OCTET_STRING)
+        # prt.time = bytearray(b'07E6010B0208430BFF007800')
+        # prt.time = bytearray("07E6010B0208430BFF007800", encoding="utf-8")
+        prt.time = "07E6010BFF0A100BFF007800"
+        val = self.reader.write(prt, 2)
+        self.disconnect()
     def get_objects(self):
         if self.settings.outputFile and os.path.exists(self.settings.outputFile):
             try:
@@ -110,12 +135,6 @@ class MeterTest:
                         self.reader.writeTrace(f"Read result: {self.PUT_request(p, obj.logicalName, 3, cnx)}",
                                                TraceLevel.VERBOSE)
                     # readObjects.append(("0.0.42.0.0.255", int(2)))
-                    # prt = GXDLMSClock("0.0.1.0.0.255")
-                    # # prt.setDataType(2, DataType.DATETIME)
-                    # # prt.value = "1640777935" #("<DateTime Value=\"29/12/2021 05:45:12\" />\r\n")
-                    # prt.setDataType(2, DataType.OCTET_STRING)
-                    # prt.value = bytearray(b'07E50C290308430BFF007800')
-                    # self.reader.write(prt, 2)
                     # for k, v in readObjects:
                     #     obj = self.settings.client.objects.findByLN(ObjectType.NONE, k)
                     #     if obj is None:
@@ -137,6 +156,7 @@ class MeterTest:
 
     def main(self):
         self.get_objects()
+        # self.get_sync()
 
 if __name__ == "__main__":
     meter = MeterTest(sys.argv)
