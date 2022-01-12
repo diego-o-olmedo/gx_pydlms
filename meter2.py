@@ -1,6 +1,8 @@
 # add path
 import os
 import sys
+
+import gurux_dlms.GXStructure
 import requests
 import json
 
@@ -37,6 +39,18 @@ class MeterTest:
         print
 
     def addtask(self, pid, ln, v, cnx):
+        # print(isinstance(v,bytearray))
+        if type(v) == gurux_dlms.GXStructure.GXStructure: print(type(v))
+        if isinstance(v, list):
+            vl=list(v)
+        elif isinstance(v,bytearray):
+            b = bytearray(v)
+            d = b.decode()
+            vl = []
+            vl.insert(0,d)
+        else:
+            vl = []
+            vl.insert(0,v)
         djson = {
             "proceso":pid,
             "ip":"194.163.161.91",
@@ -46,7 +60,7 @@ class MeterTest:
                 "obis" : ln,
                 "atributos" : [
                     {
-                        "atributo" : "ejemp1", "valor" : v
+                        "atributo" : "ejemp1", "valor" : vl
                     }
                 ]
 
