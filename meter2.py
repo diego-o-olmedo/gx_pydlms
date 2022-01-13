@@ -1,6 +1,7 @@
 # add path
 import os
 import sys
+import time
 
 import gurux_dlms.GXStructure
 import requests
@@ -10,6 +11,8 @@ from GXSettings import GXSettings
 from GXDLMSReader import GXDLMSReader
 
 from gurux_common.enums import TraceLevel
+from datetime import datetime
+from gurux_dlms import GXDateTime
 from gurux_dlms.enums import ObjectType, DataType
 from gurux_dlms.objects import GXDLMSObject, GXDLMSObjectCollection, GXDLMSData, GXDLMSRegister,\
     GXDLMSDemandRegister, GXDLMSProfileGeneric, GXDLMSExtendedRegister, GXDLMSClock
@@ -39,8 +42,6 @@ class MeterTest:
         print
 
     def addtask(self, pid, ln, v, cnx):
-        # print(isinstance(v,bytearray))
-        if type(v) == gurux_dlms.GXStructure.GXStructure: print(type(v))
         if isinstance(v, list):
             vl=list(v)
         elif isinstance(v,bytearray):
@@ -85,6 +86,10 @@ class MeterTest:
                 read = False
         # readObjects = []
         # readObjects.append(("0.0.42.0.0.255", int(2)))
+        ts = time.time()-20000
+        t = datetime.fromtimestamp(ts)
+        val = GXDateTime(t)
+        # print(val)
         self.connect()
         # for k, v in readObjects:
         #     obj = self.settings.client.objects.findByLN(ObjectType.NONE, k)
@@ -97,7 +102,7 @@ class MeterTest:
         prt.setDataType(2, DataType.OCTET_STRING)
         # prt.time = bytearray(b'07E6010B0208430BFF007800')
         # prt.time = bytearray("07E6010B0208430BFF007800", encoding="utf-8")
-        prt.time = "07E6010BFF0A100BFF007800"
+        prt.time = val
         val = self.reader.write(prt, 2)
         self.disconnect()
     def get_objects(self):
@@ -144,9 +149,16 @@ class MeterTest:
                         # source = response.text
                         # jn = json.loads(response.text)
                         p = int(jn["listaDatos"][0]["proceso"])
+                        o = jn["listaDatos"][0]["obis"]
                         f = True
+                        if(o=="0.0.1.0.0.255"):
+                            offset = int(jn["listaDatos"][0]["valor"])
+                            t=time.localtime()+offset
+                            val = gurux_dlms.GXDateTime.fromUnixTime(t)
+                        else:
+                            val = jn["listaDatos"][0]["valor"]
                         # datacmd = self.reader.read(jn["listaDatos"][0]["atributos"]["obis"], jn["listaDatos"][0]["atributos"]["atributo"])
-                        self.reader.writeTrace(f"Read result: {self.PUT_request(p, obj.logicalName, 3, cnx)}",
+                        self.reader.writeTrace(f"Read result: {self.PUT_request(p, o, val, cnx)}",
                                                TraceLevel.VERBOSE)
                     # readObjects.append(("0.0.42.0.0.255", int(2)))
                     # for k, v in readObjects:
@@ -169,8 +181,8 @@ class MeterTest:
     # def get_objects_from_meter(self):
 
     def main(self):
-        self.get_objects()
-        # self.get_sync()
+        # self.get_objects()
+        self.get_sync()
 
 if __name__ == "__main__":
     meter = MeterTest(sys.argv)
