@@ -149,16 +149,24 @@ class MeterTest:
                         # source = response.text
                         # jn = json.loads(response.text)
                         p = int(jn["listaDatos"][0]["proceso"])
-                        o = jn["listaDatos"][0]["obis"]
+                        o = jn["listaDatos"][0]["atributos"][0]["obis"]
                         f = True
                         if(o=="0.0.1.0.0.255"):
-                            offset = int(jn["listaDatos"][0]["valor"])
-                            t=time.localtime()+offset
-                            val = gurux_dlms.GXDateTime.fromUnixTime(t)
+                            offset = int(jn["listaDatos"][0]["atributos"][0]["valor"])
+                            ts = time.time()+offset
+                            t = datetime.fromtimestamp(ts)
+                            val = GXDateTime(t)
+                            prt = GXDLMSClock("0.0.1.0.0.255")
+                            prt.setDataType(2, DataType.OCTET_STRING)
+                            prt.time = val
+                            val = self.reader.write(prt, 2)
+                            # print(type(val))
+                            self.reader.writeTrace(f"Read result: {self.PUT_request(p, o, 0, cnx)}",
+                                                   TraceLevel.VERBOSE)
                         else:
-                            val = jn["listaDatos"][0]["valor"]
-                        # datacmd = self.reader.read(jn["listaDatos"][0]["atributos"]["obis"], jn["listaDatos"][0]["atributos"]["atributo"])
-                        self.reader.writeTrace(f"Read result: {self.PUT_request(p, o, val, cnx)}",
+                            val = jn["listaDatos"][0]["atributos"][0]["valor"]
+                            # datacmd = self.reader.read(jn["listaDatos"][0]["atributos"]["obis"], jn["listaDatos"][0]["atributos"]["atributo"])
+                            self.reader.writeTrace(f"Read result: {self.PUT_request(p, o, val, cnx)}",
                                                TraceLevel.VERBOSE)
                     # readObjects.append(("0.0.42.0.0.255", int(2)))
                     # for k, v in readObjects:
@@ -181,8 +189,8 @@ class MeterTest:
     # def get_objects_from_meter(self):
 
     def main(self):
-        # self.get_objects()
-        self.get_sync()
+        self.get_objects()
+        # self.get_sync()
 
 if __name__ == "__main__":
     meter = MeterTest(sys.argv)
